@@ -1,0 +1,31 @@
+﻿@model CustomerCare.Models.Entities.TicketCategory
+
+@{
+    ViewData["Title"] = "Delete Category";
+}
+
+<h2>Delete Category</h2>
+<hr />
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-danger">
+        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+        {
+            <div>@error.ErrorMessage</div>
+        }
+    </div>
+}
+
+<div class="mb-3">
+    <strong>Name:</strong> @Model.Name
+</div>
+<div class="mb-3">
+    <strong>Description:</strong> @Model.Description
+</div>
+
+<form asp-action="Delete" method="post">
+    <input type="hidden" asp-for="Id" />
+    <button type="submit" class="btn btn-danger">Delete</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+</form>

@@ -1,0 +1,37 @@
+﻿@model IEnumerable<CustomerCare.Models.Entities.Ticket>
+
+@{
+    ViewData["Title"] = "My Tickets";
+}
+
+<h2>My Tickets</h2>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Create New Ticket</a>
+</p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Title</th>
+            <th>Category</th>
+            <th>Priority</th>
+            <th>Status</th>
+            <th>Created At (UTC)</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Id</td>
+                <td>@item.Title</td>
+                <td>@item.Category?.Name</td>
+                <td>@item.Priority</td>
+                <td>@item.Status</td>
+                <td>@item.CreatedAt</td>
+            </tr>
+        }
+    </tbody>
+</table>

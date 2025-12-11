@@ -1,0 +1,68 @@
+﻿@model IEnumerable<CustomerCare.Models.Entities.Ticket>
+@using CustomerCare.Models.Enums
+
+@{
+    ViewData["Title"] = "Ticket Management";
+}
+
+<h2>Ticket Management</h2>
+
+<table class="table table-striped table-sm">
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Title</th>
+            <th>Created By</th>
+            <th>Assigned To</th>
+            <th>Category</th>
+            <th>Priority</th>
+            <th>Status</th>
+            <th>Created At (UTC)</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>@item.Id</td>
+            <td>@item.Title</td>
+            <td>@item.CreatedBy?.Email</td>
+            <td>@item.AssignedTo?.Email ?? "-"</td>
+            <td>@item.Category?.Name</td>
+            <td>@item.Priority</td>
+            <td>@item.Status</td>
+            <td>@item.CreatedAt</td>
+            <td>
+                @if (item.AssignedToId == null)
+                {
+                    <form asp-action="AssignToMe" method="post" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@item.Id" />
+                        <button type="submit" class="btn btn-sm btn-outline-primary">
+                            Assign to me
+                        </button>
+                    </form>
+                }
+
+                <form asp-action="ChangeStatus" method="post" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@item.Id" />
+                        <select name="status" class="form-select form-select-sm d-inline w-auto">
+                            @foreach (TicketStatus st in Enum.GetValues(typeof(TicketStatus)))
+                            {
+                                <option value="@st" selected="@(st == item.Status ? "selected" : null)">
+                                    @st
+                                </option>
+                            }
+                        </select>
+
+                    <button type="submit" class="btn btn-sm btn-outline-secondary">
+                        Update
+                    </button>
+                </form>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
