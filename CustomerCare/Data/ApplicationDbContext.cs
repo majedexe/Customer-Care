@@ -16,6 +16,7 @@ namespace CustomerCare.Data
         public DbSet<TicketCategory> TicketCategories { get; set; }
         public DbSet<TicketAttachment> TicketAttachments { get; set; }
         public DbSet<TicketComment> TicketComments { get; set; }
+        public DbSet<CommentAttachment> CommentAttachments { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -37,7 +38,13 @@ namespace CustomerCare.Data
                 .HasOne(c => c.CreatedBy)
                 .WithMany()
                 .HasForeignKey(c => c.CreatedById)
-                .OnDelete(DeleteBehavior.Restrict); 
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<CommentAttachment>()
+                .HasOne(a => a.TicketComment)
+                .WithMany(c => c.Attachments)
+                .HasForeignKey(a => a.TicketCommentId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

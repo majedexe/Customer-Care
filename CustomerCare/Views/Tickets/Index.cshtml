@@ -19,6 +19,7 @@
             <th>Priority</th>
             <th>Status</th>
             <th>Created At (UTC)</th>
+            <th></th>
         </tr>
     </thead>
     <tbody>
@@ -31,6 +32,11 @@
                 <td>@item.Priority</td>
                 <td>@item.Status</td>
                 <td>@item.CreatedAt</td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary">
+                        Details
+                    </a>
+                </td>
             </tr>
         }
     </tbody>

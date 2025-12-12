@@ -1,0 +1,62 @@
+﻿@model CustomerCare.Models.ViewModels.DashboardViewModel
+
+@{
+    ViewData["Title"] = "Support Dashboard";
+}
+
+<h2>Support Dashboard</h2>
+
+<div class="row mb-4">
+    <div class="col-md-3 mb-2">
+        <div class="card">
+            <div class="card-body">
+                <h5>Total Tickets</h5>
+                <h3>@Model.TotalTickets</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-2">
+        <div class="card">
+            <div class="card-body">
+                <h5>Open</h5>
+                <h3>@Model.OpenTickets</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-2">
+        <div class="card">
+            <div class="card-body">
+                <h5>In Progress</h5>
+                <h3>@Model.InProgressTickets</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-2">
+        <div class="card">
+            <div class="card-body">
+                <h5>Resolved / Closed</h5>
+                <h3>@(Model.ResolvedTickets + Model.ClosedTickets)</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h4>Tickets by Priority</h4>
+<table class="table table-striped table-sm col-md-6">
+    <thead>
+        <tr>
+            <th>Priority</th>
+            <th>Count</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var p in Model.ByPriority.OrderByDescending(x => x.Count))
+        {
+            <tr>
+                <td>@p.Priority</td>
+                <td>@p.Count</td>
+            </tr>
+        }
+    </tbody>
+</table>
+

@@ -18,5 +18,7 @@ namespace CustomerCare.Models.ViewModels
         public int? CategoryId { get; set; }
 
         public IEnumerable<SelectListItem> Categories { get; set; }
+
+        public IFormFile? Attachment { get; set; }
     }
 }

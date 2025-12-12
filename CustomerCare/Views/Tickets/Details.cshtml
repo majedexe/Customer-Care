@@ -1,0 +1,139 @@
+﻿@model CustomerCare.Models.ViewModels.TicketDetailsViewModel
+@using CustomerCare.Models.Identity
+
+@{
+    ViewData["Title"] = "Ticket Details";
+    var ticket = Model.Ticket;
+    var isStaff = User.IsInRole(RoleNames.Admin) || User.IsInRole(RoleNames.Employee);
+}
+
+<h2>Ticket #@ticket.Id - @ticket.Title</h2>
+
+<div class="mb-3">
+    <strong>Status:</strong> @ticket.Status<br />
+    <strong>Priority:</strong> @ticket.Priority<br />
+    <strong>Category:</strong> @ticket.Category?.Name ?? "None"<br />
+    <strong>Created By:</strong> @ticket.CreatedBy?.Email<br />
+    <strong>Assigned To:</strong> @(ticket.AssignedTo?.Email ?? "-")<br />
+    <strong>Created At (UTC):</strong> @ticket.CreatedAt<br />
+    @if (ticket.UpdatedAt.HasValue)
+    {
+        <strong>Updated At (UTC):</strong> 
+        @ticket.UpdatedAt
+    
+        <br />
+    }
+</div>
+
+<div class="mb-3">
+    <h4>Description</h4>
+    <p>@ticket.Description</p>
+</div>
+
+<div class="mb-3">
+    <h4>Attachments</h4>
+    @if (ticket.Attachments != null && ticket.Attachments.Any())
+    {
+        <ul>
+            @foreach (var att in ticket.Attachments)
+            {
+                <li>
+                    <a href="@att.FilePath" target="_blank">
+                        @(att.OriginalFileName ?? att.FileName)
+                    </a>
+                    <small class="text-muted">(@att.UploadedAt)</small>
+                </li>
+            }
+        </ul>
+    }
+    else
+    {
+        <p class="text-muted">No attachments.</p>
+    }
+</div>
+
+<div class="mb-3">
+    <h4>Comments</h4>
+
+    @if (ticket.Comments != null && ticket.Comments.Any())
+    {
+        <ul class="list-group">
+            @foreach (var c in ticket.Comments.OrderByDescending(c => c.CreatedAt))
+            {
+                if (!isStaff && c.IsInternal) { continue; }
+
+                <li class="list-group-item">
+                    <div>
+                        <strong>@c.CreatedBy?.Email</strong>
+                        <small class="text-muted">@c.CreatedAt (UTC)</small>
+                        @if (c.IsInternal)
+                        {
+                            <span class="badge bg-warning text-dark">Internal</span>
+                        }
+                    </div>
+                    <div>@c.Message</div>
+
+                    @if (c.Attachments != null && c.Attachments.Any())
+                    {
+                        <div class="mt-1">
+                            <strong>Attachments:</strong>
+                            <ul class="mb-0">
+                                @foreach (var att in c.Attachments)
+                                {
+                                    <li>
+                                        <a href="@att.FilePath" target="_blank">
+                                            @(att.OriginalFileName ?? att.FileName)
+                                        </a>
+                                        <small class="text-muted">(@att.UploadedAt)</small>
+                                    </li>
+                                }
+                            </ul>
+                        </div>
+                    }
+                </li>
+            }
+        </ul>
+    }
+    else
+    {
+        <p class="text-muted">No comments yet.</p>
+    }
+</div>
+
+<div class="mb-3">
+    <h4>Add Comment</h4>
+    <form asp-action="AddComment" asp-route-id="@ticket.Id" method="post" enctype="multipart/form-data">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+        <div class="mb-3">
+            <label asp-for="NewCommentMessage" class="form-label">Message</label>
+            <textarea asp-for="NewCommentMessage" class="form-control" rows="3"></textarea>
+            <span asp-validation-for="NewCommentMessage" class="text-danger"></span>
+        </div>
+
+        @if (isStaff)
+        {
+            <div class="form-check mb-3">
+                <input asp-for="NewCommentIsInternal" class="form-check-input" />
+                <label asp-for="NewCommentIsInternal" class="form-check-label">
+                    Internal comment (visible only to staff)
+                </label>
+            </div>
+        }
+
+        <div class="mb-3">
+            <label asp-for="NewCommentAttachment" class="form-label">Attachment (optional)</label>
+            <input asp-for="NewCommentAttachment" type="file" class="form-control" />
+            <span asp-validation-for="NewCommentAttachment" class="text-danger"></span>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Add Comment</button>
+        <a asp-action="Index" class="btn btn-secondary">Back to My Tickets</a>
+    </form>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
