@@ -115,8 +115,17 @@ namespace CustomerCare.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(TicketCreateViewModel model)
         {
+            // 1) Check if server-side validation passed
             if (!ModelState.IsValid)
             {
+                // Collect errors just to see them in the view
+                var allErrors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+
+                TempData["TicketErrorDebug"] = "ModelState invalid: " + string.Join(" | ", allErrors);
+
                 model.Categories = await _context.TicketCategories
                     .OrderBy(c => c.Name)
                     .Select(c => new SelectListItem
@@ -129,7 +138,22 @@ namespace CustomerCare.Controllers
                 return View(model);
             }
 
+            // 2) Get current user
             var userId = _userManager.GetUserId(User);
+            if (string.IsNullOrEmpty(userId))
+            {
+                TempData["TicketErrorDebug"] = "UserId is null/empty – are you logged in?";
+                model.Categories = await _context.TicketCategories
+                    .OrderBy(c => c.Name)
+                    .Select(c => new SelectListItem
+                    {
+                        Value = c.Id.ToString(),
+                        Text = c.Name
+                    })
+                    .ToListAsync();
+
+                return View(model);
+            }
 
             var ticket = new Ticket
             {
@@ -143,28 +167,15 @@ namespace CustomerCare.Controllers
             };
 
             _context.Tickets.Add(ticket);
-            await _context.SaveChangesAsync(); 
 
-            if (model.Attachment != null && model.Attachment.Length > 0)
+            try
             {
-                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".pdf" };
-                var ext = Path.GetExtension(model.Attachment.FileName).ToLowerInvariant();
-
-                if (!allowedExtensions.Contains(ext))
-                {
-                    ModelState.AddModelError("Attachment", "Unsupported file type.");
-                }
-                else
-                {
-                    var attachment = await SaveAttachmentAsync(ticket.Id, model.Attachment);
-                    _context.TicketAttachments.Add(attachment);
-                    await _context.SaveChangesAsync();
-                }
+                var affected = await _context.SaveChangesAsync();
+                TempData["TicketSuccessDebug"] = $"Ticket saved. Rows affected: {affected}. New Id: {ticket.Id}";
             }
-
-            if (!ModelState.IsValid)
+            catch (Exception ex)
             {
-                // if attachment validation failed
+                TempData["TicketErrorDebug"] = "Error saving ticket: " + ex.Message;
                 model.Categories = await _context.TicketCategories
                     .OrderBy(c => c.Name)
                     .Select(c => new SelectListItem
@@ -181,12 +192,10 @@ namespace CustomerCare.Controllers
         }
 
 
+
         [Authorize(Roles = RoleNames.Admin + "," + RoleNames.Employee)]
-        public async Task<IActionResult> Manage(
-    TicketStatus? status,
-    TicketPriority? priority,
-    int? categoryId,
-    string? search)
+        public async Task<IActionResult> Manage(TicketStatus? status,TicketPriority? priority,int? categoryId,
+            string? search,int page = 1,int pageSize = 10)
         {
             var query = _context.Tickets
                 .Include(t => t.Category)
@@ -220,12 +229,24 @@ namespace CustomerCare.Controllers
 
             query = query.OrderByDescending(t => t.CreatedAt);
 
-            var tickets = await query.ToListAsync();
+            var totalCount = await query.CountAsync();
 
-            // for filters
+            var tickets = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
             var categories = await _context.TicketCategories
                 .OrderBy(c => c.Name)
                 .ToListAsync();
+
+            var pagedResult = new PagedResult<Ticket>
+            {
+                Items = tickets,
+                Page = page,
+                PageSize = pageSize,
+                TotalCount = totalCount
+            };
 
             ViewBag.Categories = categories;
             ViewBag.SelectedStatus = status;
@@ -233,8 +254,33 @@ namespace CustomerCare.Controllers
             ViewBag.SelectedCategoryId = categoryId;
             ViewBag.Search = search;
 
+            return View(pagedResult);
+        }
+
+        [Authorize(Roles = RoleNames.Admin + "," + RoleNames.Employee)]
+        public async Task<IActionResult> MyAssigned(TicketStatus? status)
+        {
+            var userId = _userManager.GetUserId(User);
+
+            var query = _context.Tickets
+                .Include(t => t.Category)
+                .Include(t => t.CreatedBy)
+                .Where(t => t.AssignedToId == userId);
+
+            if (status.HasValue)
+            {
+                query = query.Where(t => t.Status == status.Value);
+            }
+
+            var tickets = await query
+                .OrderByDescending(t => t.CreatedAt)
+                .ToListAsync();
+
+            ViewBag.SelectedStatus = status;
+
             return View(tickets);
         }
+
 
         [Authorize(Roles = RoleNames.Admin + "," + RoleNames.Employee)]
         [HttpPost]

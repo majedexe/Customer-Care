@@ -1,5 +1,6 @@
 ﻿@using Microsoft.AspNetCore.Identity
 @using CustomerCare.Models.Identity
+@using CustomerCare.Models.Identity
 @inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
 
@@ -8,70 +9,162 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - CustomerCare</title>
+    <title>@ViewData["Title"] - Support Desk</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/CustomerCare.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/CustomerCare.Ticketing.styles.css" asp-append-version="true" />
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">CustomerCare</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-gradient shadow-sm">
+            <div class="container">
+                <a class="navbar-brand"
+                   asp-area=""
+                   asp-controller="Home"
+                   asp-action="Index">
+                    Support Desk
+                </a>
+                <button class="navbar-toggler text-light" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon" style="filter: invert(1);"></span>
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
+                            @{
+                                var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+                                var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+                                bool isHome = string.Equals(currentController, "Home", System.StringComparison.OrdinalIgnoreCase)
+                                && string.Equals(currentAction, "Index", System.StringComparison.OrdinalIgnoreCase);
+                            }
+                            <a class="nav-link @(isHome ? "active-link" : "")"
+                               asp-controller="Home"
+                               asp-action="Index">
+                                Home
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            @{
+                                bool isHelp = string.Equals(currentController, "Home", System.StringComparison.OrdinalIgnoreCase)
+                                && string.Equals(currentAction, "Help", System.StringComparison.OrdinalIgnoreCase);
+                            }
+                            <a class="nav-link @(isHelp ? "active-link" : "")"
+                               asp-controller="Home"
+                               asp-action="Help">
+                                Help Center
+                            </a>
+                        </li>
+
                         @if (SignInManager.IsSignedIn(User))
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Tickets" asp-action="Index">My Tickets</a>
+                                @{
+                                    bool isTickets = string.Equals(currentController, "Tickets", System.StringComparison.OrdinalIgnoreCase)
+                                    && string.Equals(currentAction, "Index", System.StringComparison.OrdinalIgnoreCase);
+                                }
+                                <a class="nav-link @(isTickets ? "active-link" : "")"
+                                   asp-controller="Tickets"
+                                   asp-action="Index">
+                                    My Tickets
+                                </a>
                             </li>
 
                             @if (User.IsInRole(RoleNames.Admin) || User.IsInRole(RoleNames.Employee))
                             {
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-controller="Tickets" asp-action="Manage">Manage Tickets</a>
+                                    @{
+                                        bool isManage = string.Equals(currentController, "Tickets", System.StringComparison.OrdinalIgnoreCase)
+                                        && string.Equals(currentAction, "Manage", System.StringComparison.OrdinalIgnoreCase);
+                                    }
+                                    <a class="nav-link @(isManage ? "active-link" : "")"
+                                       asp-controller="Tickets"
+                                       asp-action="Manage">
+                                        Manage
+                                    </a>
+                                </li>
+
+                                <li class="nav-item">
+                                    @{
+                                        bool isMyAssigned = string.Equals(currentController, "Tickets", System.StringComparison.OrdinalIgnoreCase)
+                                        && string.Equals(currentAction, "MyAssigned", System.StringComparison.OrdinalIgnoreCase);
+                                    }
+                                    <a class="nav-link @(isMyAssigned ? "active-link" : "")"
+                                       asp-controller="Tickets"
+                                       asp-action="MyAssigned">
+                                        My Assigned
+                                    </a>
+                                </li>
+
+                                <li class="nav-item">
+                                    @{
+                                        bool isDashboard = string.Equals(currentController, "Dashboard", System.StringComparison.OrdinalIgnoreCase);
+                                    }
+                                    <a class="nav-link @(isDashboard ? "active-link" : "")"
+                                       asp-controller="Dashboard"
+                                       asp-action="Index">
+                                        Dashboard
+                                    </a>
                                 </li>
                             }
 
                             @if (User.IsInRole(RoleNames.Admin))
                             {
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-controller="TicketCategories" asp-action="Index">Ticket Categories</a>
+                                    @{
+                                        bool isCategories = string.Equals(currentController, "TicketCategories", System.StringComparison.OrdinalIgnoreCase);
+                                    }
+                                    <a class="nav-link @(isCategories ? "active-link" : "")"
+                                       asp-controller="TicketCategories"
+                                       asp-action="Index">
+                                        Categories
+                                    </a>
                                 </li>
-                            }
 
-                            @if (User.IsInRole(RoleNames.Admin) || User.IsInRole(RoleNames.Employee))
-                            {
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-controller="Dashboard" asp-action="Index">Dashboard</a>
+                                    @{
+                                        bool isUsers = string.Equals(currentController, "Users", System.StringComparison.OrdinalIgnoreCase);
+                                    }
+                                    <a class="nav-link @(isUsers ? "active-link" : "")"
+                                       asp-controller="Users"
+                                       asp-action="Index">
+                                        Users &amp; Roles
+                                    </a>
                                 </li>
                             }
                         }
                     </ul>
-                    <partial name="_LoginPartial" />
+
+                    <div class="d-flex align-items-center gap-2">
+                        <button id="themeToggle"
+                                type="button"
+                                class="btn btn-sm btn-outline-light">
+                            <span id="themeToggleIcon">🌙</span>
+                        </button>
+                        <partial name="_LoginPartial" />
+                    </div>
                 </div>
             </div>
         </nav>
     </header>
-    <div class="container">
-        <main role="main" class="pb-3">
+
+    <div class="container main-wrapper">
+        <main role="main">
             @RenderBody()
         </main>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2025 - CustomerCare - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+    <footer class="footer text-muted py-3">
+        <div class="container d-flex justify-content-between flex-wrap gap-2">
+            <span>&copy; @DateTime.Now.Year - Support Desk</span>
+            <span>
+                <a asp-controller="Home" asp-action="Help">Help Center</a> ·
+                <a href="mailto:support@example.com">Contact Support</a>
+            </span>
         </div>
     </footer>
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
-    @await RenderSectionAsync("Scripts", required: false)
+    @RenderSection("Scripts", required: false)
 </body>
 </html>

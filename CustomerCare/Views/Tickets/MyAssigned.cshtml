@@ -3,22 +3,62 @@
 @using CustomerCare.Helpers
 
 @{
-    ViewData["Title"] = "My Tickets";
+    ViewData["Title"] = "My Assigned Tickets";
+
+    TicketStatus? selectedStatus = ViewBag.SelectedStatus != null
+        ? (TicketStatus)ViewBag.SelectedStatus
+        : (TicketStatus?)null;
 }
 
-<h2>My Tickets</h2>
+<h2>Support – My Work</h2>
 
-<p>
-    <a asp-action="Create" class="btn btn-primary mb-2">Create New Ticket</a>
-</p>
+<ul class="nav nav-tabs mb-3">
+    <li class="nav-item">
+        <a class="nav-link"
+           asp-controller="Tickets"
+           asp-action="Manage">
+            All Tickets
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link active"
+           asp-controller="Tickets"
+           asp-action="MyAssigned">
+            My Assigned
+        </a>
+    </li>
+</ul>
 
 <div class="card">
+    <div class="card-header">
+        <form method="get" class="row g-2 mb-0">
+            <div class="col-md-4">
+                <label class="form-label mb-1">Status</label>
+                <select name="status" class="form-select form-select-sm">
+                    <option value="">All</option>
+                    @foreach (TicketStatus st in Enum.GetValues(typeof(TicketStatus)))
+                    {
+                        <option value="@st"
+                                selected="@(selectedStatus.HasValue && st == selectedStatus.Value ? "selected" : null)">
+                            @st
+                        </option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-4 align-self-end">
+                <button type="submit" class="btn btn-sm btn-primary">Filter</button>
+                <a asp-action="MyAssigned" class="btn btn-sm btn-secondary">Clear</a>
+            </div>
+        </form>
+    </div>
+
     <div class="card-body p-0">
         <table class="table table-striped table-sm mb-0">
             <thead>
                 <tr>
                     <th>Id</th>
                     <th>Title</th>
+                    <th>Created By</th>
                     <th>Category</th>
                     <th>Priority</th>
                     <th>Status</th>
@@ -32,6 +72,7 @@
                     <tr>
                         <td>@item.Id</td>
                         <td>@item.Title</td>
+                        <td>@item.CreatedBy?.Email</td>
                         <td>@item.Category?.Name</td>
                         <td>
                             <span class="@TicketUiHelper.GetPriorityBadgeClass(item.Priority)">

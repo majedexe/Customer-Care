@@ -1,8 +1,190 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@using CustomerCare.Models.Identity
+@using CustomerCare.Models.Enums
+@using CustomerCare.Helpers
+
+@{
+    ViewData["Title"] = "Welcome";
+    var isLoggedIn = User.Identity?.IsAuthenticated ?? false;
+    var isStaff = User.IsInRole(RoleNames.Admin) || User.IsInRole(RoleNames.Employee);
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="hero-section mb-4">
+    <div class="row align-items-center">
+        <div class="col-lg-7">
+            <div class="hero-chip mb-3">
+                <span>24/7 Support Portal</span>
+            </div>
+
+            <h1 class="hero-big-title mb-3">
+                Resolve IT & service issues faster.
+            </h1>
+
+            <p class="hero-subtitle mb-4">
+                Log customer issues, collaborate with your support team, and keep everything
+                tracked in one clean ticketing system.
+            </p>
+
+            <div class="d-flex flex-wrap gap-2">
+                @if (!isLoggedIn)
+                {
+                    <a asp-area="Identity"
+                       asp-page="/Account/Register"
+                       class="btn btn-primary btn-lg">
+                        Get Started – Create Account
+                    </a>
+                    <a asp-area="Identity"
+                       asp-page="/Account/Login"
+                       class="btn btn-outline-light btn-lg">
+                        I already have an account
+                    </a>
+                }
+                else if (!isStaff)
+                {
+                    <a asp-controller="Tickets"
+                       asp-action="Create"
+                       class="btn btn-primary btn-lg">
+                        Open a New Ticket
+                    </a>
+                    <a asp-controller="Tickets"
+                       asp-action="Index"
+                       class="btn btn-outline-light btn-lg">
+                        View My Tickets
+                    </a>
+                }
+                else
+                {
+                    <a asp-controller="Tickets"
+                       asp-action="Manage"
+                       class="btn btn-primary btn-lg">
+                        Go to Ticket Queue
+                    </a>
+                    <a asp-controller="Dashboard"
+                       asp-action="Index"
+                       class="btn btn-outline-light btn-lg">
+                        View Support Dashboard
+                    </a>
+                }
+            </div>
+        </div>
+
+        <div class="col-lg-5 mt-4 mt-lg-0">
+            <div class="card app-card bg-light bg-opacity-10 border-0">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Live snapshot</h5>
+                    <p class="text-muted mb-3">
+                        Recent tickets by status give your team a quick overview.
+                    </p>
+                    <div class="d-flex flex-wrap gap-3">
+                        <div>
+                            <div class="text-muted small">Open</div>
+                            <div class="fw-bold fs-4">–</div>
+                        </div>
+                        <div>
+                            <div class="text-muted small">In Progress</div>
+                            <div class="fw-bold fs-4">–</div>
+                        </div>
+                        <div>
+                            <div class="text-muted small">Resolved (24h)</div>
+                            <div class="fw-bold fs-4">–</div>
+                        </div>
+                    </div>
+
+                    <hr />
+
+                    <ul class="list-unstyled small mb-0">
+                        <li class="mb-1">✓ Centralized tickets</li>
+                        <li class="mb-1">✓ Attach screenshots & documents</li>
+                        <li class="mb-1">✓ Internal notes for support agents</li>
+                        <li class="mb-1">✓ Role-based access (User, Employee, Admin)</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<section class="quick-actions">
+    <div class="row g-3">
+        <div class="col-md-4">
+            <div class="card quick-card h-100">
+                <div class="card-body">
+                    <div class="quick-card-icon bg-primary bg-opacity-10 text-primary mb-3">
+                        💬
+                    </div>
+                    <h5 class="card-title">For Customers</h5>
+                    <p class="card-text text-muted">
+                        Submit issues in a few clicks, attach screenshots, and track the status of your requests.
+                    </p>
+                    @if (isLoggedIn && !isStaff)
+                    {
+                        <a asp-controller="Tickets"
+                           asp-action="Create"
+                           class="btn btn-sm btn-primary">
+                            Open Ticket
+                        </a>
+                    }
+                    else if (!isLoggedIn)
+                    {
+                        <a asp-area="Identity"
+                           asp-page="/Account/Register"
+                           class="btn btn-sm btn-outline-primary">
+                            Create Account
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card quick-card h-100">
+                <div class="card-body">
+                    <div class="quick-card-icon bg-success bg-opacity-10 text-success mb-3">
+                        🧑‍💻
+                    </div>
+                    <h5 class="card-title">For Support Agents</h5>
+                    <p class="card-text text-muted">
+                        Manage queues, assign tickets, add internal notes, and keep SLAs under control.
+                    </p>
+                    @if (isStaff)
+                    {
+                        <a asp-controller="Tickets"
+                           asp-action="Manage"
+                           class="btn btn-sm btn-primary">
+                            View Queue
+                        </a>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary">Staff access</span>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card quick-card h-100">
+                <div class="card-body">
+                    <div class="quick-card-icon bg-warning bg-opacity-10 text-warning mb-3">
+                        📊
+                    </div>
+                    <h5 class="card-title">For Admins</h5>
+                    <p class="card-text text-muted">
+                        Configure categories, manage user roles, and monitor overall performance from the dashboard.
+                    </p>
+                    @if (User.IsInRole(RoleNames.Admin))
+                    {
+                        <a asp-controller="Dashboard"
+                           asp-action="Index"
+                           class="btn btn-sm btn-primary">
+                            Open Dashboard
+                        </a>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary">Admin only</span>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
