@@ -8,6 +8,20 @@
 
 <hr />
 
+@if (TempData["TicketErrorDebug"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["TicketErrorDebug"]
+    </div>
+}
+
+@if (TempData["TicketSuccessDebug"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["TicketSuccessDebug"]
+    </div>
+}
+
 <div class="row">
     <div class="col-md-8">
         <form asp-action="Create" method="post" enctype="multipart/form-data">
