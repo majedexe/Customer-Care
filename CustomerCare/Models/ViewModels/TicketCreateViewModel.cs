@@ -1,4 +1,5 @@
 ﻿using CustomerCare.Models.Enums;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.ComponentModel.DataAnnotations;
 
@@ -8,17 +9,13 @@ namespace CustomerCare.Models.ViewModels
     {
         [Required, StringLength(100)]
         public string Title { get; set; }
-
         [Required]
         public string Description { get; set; }
-
         [Required]
         public TicketPriority Priority { get; set; }
-
         public int? CategoryId { get; set; }
-
+        [ValidateNever]
         public IEnumerable<SelectListItem> Categories { get; set; }
-
         public IFormFile? Attachment { get; set; }
     }
 }
